@@ -1,10 +1,6 @@
-Begin Dialog SplitName 47,103,166,72,"Split Name", .displayIt
-  TextBox 58,10,90,16, .NameEnter
-  Text 0,10,53,10, "Enter Name of Split", .Text1
-  OKButton 5,30,40,14, "OK", .OKButton1
-  CancelButton 99,30,40,14, "Cancel", .CancelButton1
-End Dialog
 Dim filename As String 
+Dim dbName As String 
+'ImportXML.UniqueBaseFileName
 
 Sub Main
 	Call ExcelImport()	'C:\Users\mckinnin.lloyd\Documents\Active Projects\P-card split\2019JulyTransactionStatement.xlsx
@@ -17,22 +13,24 @@ End Sub
 
 ' File - Import Assistant: Excel
 Function ExcelImport
+	Dim obj As Object
 	Set task = Client.GetImportTask("ImportExcel")
-	dbName = "C:\Users\mckinnin.lloyd\Documents\Active Projects\P-card split\2019JulyTransactionStatement.xlsx"
+	set obj = client.commondialogs
+		dbName =  obj.fileopen("","","All Files (*.*)|*.*||;")
 	task.FileToImport = dbName
 	task.SheetToImport = "Sheet1"
-	task.OutputFilePrefix = "2019JulyTransactionStatement"
+	task.OutputFilePrefix = iSplit(dbName ,"","\",1,1)
 	task.FirstRowIsFieldName = "TRUE"
 	task.EmptyNumericFieldAsZero = "TRUE"
 	task.PerformTask
 	dbName = task.OutputFilePath("Sheet1")
 	Set task = Nothing
-	Client.OpenDatabase(dbName)
 End Function
+
 
 ' Data: Direct Extraction
 Function DirectExtraction
-	Set db = Client.OpenDatabase("2019JulyTransactionStatement-Sheet1.IMD")
+	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Extraction
 	task.AddFieldToInc "NAME"
 	task.AddFieldToInc "TRANSACTION_DATE"
@@ -47,8 +45,10 @@ Function DirectExtraction
 	Client.OpenDatabase ((filename + ".IMD"))
 End Function
 
+
 ' Analysis: Summarization
 Function Summarization
+	Dim ufilename As String 
 	Set db = Client.OpenDatabase(filename + ".IMD")
 	Set task = db.Summarization
 	task.AddFieldToSummarize "NAME"
