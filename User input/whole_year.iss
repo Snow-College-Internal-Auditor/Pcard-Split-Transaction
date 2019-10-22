@@ -144,6 +144,7 @@ End Function
 
 ' File - Export Database: XLSX
 Function ExportDatabaseXLSX
+	Dim fileOutPut As String 
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Index
 	task.AddKey "NO_OF_RECS", "D"
@@ -156,4 +157,8 @@ Function ExportDatabaseXLSX
 	Set db = Nothing
 	Set task = Nothing
 End Function
+
+
+
+
 
