@@ -2,7 +2,6 @@ Dim customdbName As String
 Dim customdbName2 As String 
 Dim dbName As String
 Dim subFilename As String
-Dim getDate As String   
 
 Sub Main
 	Call Filename()
