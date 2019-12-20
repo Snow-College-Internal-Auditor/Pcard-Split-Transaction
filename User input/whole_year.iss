@@ -135,28 +135,16 @@ Function DirectExtraction2
 	Client.OpenDatabase (dbName)
 End Function
 
-' Data: Index Database
-Function IndexDatabase
-	Set db = Client.OpenDatabase("audit-Month.IMD")
-	Set task = db.Index
-	task.AddKey "NO_OF_RECS", "A"
-	task.Index FALSE
-	Set task = Nothing
-	Set db = Nothing
-End Function
-
-
 ' File - Export Database: XLSX
 Function ExportDatabaseXLSX
-	Set db = Client.OpenDatabase(dbName)
+	Set db = Client.OpenDatabase("audit-July.IMD")
 	Set task = db.Index
 	task.AddKey "NO_OF_RECS", "D"
 	task.Index FALSE
 	task = db.ExportDatabase
 	task.IncludeAllFields
-	task.AddKey "NO_OF_RECS", "D"
-	eqn = ""
-	task.PerformTask "C:\Users\mckinnin.lloyd\Documents\Active Projects\P-card split\User input\" + dbName + ".xlsx", "Database", "XLSX", 1, db.Count, eqn
+	' Display the setup dialog box before performing the task.
+	task.DisplaySetupDialog 0
 	Set db = Nothing
 	Set task = Nothing
 End Function
