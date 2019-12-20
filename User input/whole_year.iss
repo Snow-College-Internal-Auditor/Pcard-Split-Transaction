@@ -1,7 +1,8 @@
 Dim customdbName As String 
 Dim customdbName2 As String 
 Dim dbName As String
-Dim subFilename As String  
+Dim subFilename As String
+Dim getDate As String   
 
 Sub Main
 	Call Filename()
@@ -13,6 +14,7 @@ Sub Main
 	Call Summarization()	
 	Call DirectExtraction2()	
 	Call ExportDatabaseXLSX()
+	Client.RefreshFileExplorer
 End Sub
 
 
@@ -28,6 +30,7 @@ Function ExcelImport
 	Set obj = client.commondialogs
 		dbName =  obj.fileopen("","","All Files (*.*)|*.*||;")
 	task.FileToImport = dbName
+	dbName = dbName + subFilename
 	task.SheetToImport = "Sheet1"
 	task.OutputFilePrefix = iSplit(dbName ,"","\",1,1)
 	task.FirstRowIsFieldName = "TRUE"
@@ -35,6 +38,7 @@ Function ExcelImport
 	task.PerformTask
 	dbName = task.OutputFilePath("Sheet1")
 	Set task = Nothing
+	Client.RefreshFileExplorer
 End Function
 
 ' Data: Direct Extraction
@@ -46,7 +50,7 @@ Function DirectExtraction
 	task.AddFieldToInc "TRANSACTION_AMOUNT"
 	task.AddFieldToInc "MERCHANT_NAME"
 	customdbName =  "Split-" + subFilename + ".IMD"
-	task.AddExtraction customdbName,"", "TRANSACTION_DATE  > ""20180630"""
+	task.AddExtraction customdbName, "", "TRANSACTION_DATE > ""20180731"""
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
 	Set task = Nothing
@@ -67,6 +71,7 @@ Function ExcelImport1
 	task.PerformTask
 	dbName = task.OutputFilePath("Sheet1")
 	Set task = Nothing
+	Client.RefreshFileExplorer
 End Function
 
 
@@ -79,7 +84,7 @@ Function DirectExtraction1
 	task.AddFieldToInc "TRANSACTION_AMOUNT"
 	task.AddFieldToInc "MERCHANT_NAME"
 	customdbName2 = "Split2-" + subFilename  + ".IMD"
-	task.AddExtraction customdbName2, "", "TRANSACTION_DATE > ""20190630"""
+	task.AddExtraction customdbName2, "", "TRANSACTION_DATE > ""20190731"""
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
 	Set task = Nothing
@@ -144,7 +149,6 @@ End Function
 
 ' File - Export Database: XLSX
 Function ExportDatabaseXLSX
-	Dim fileOutPut As String 
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Index
 	task.AddKey "NO_OF_RECS", "D"
