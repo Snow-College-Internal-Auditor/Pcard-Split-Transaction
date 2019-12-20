@@ -7,6 +7,7 @@ Sub Main
 	Call Summarization()	
 	Call DirectExtraction1()	
 	Call ExportDatabaseXLSX()	
+	Client.RefreshFileExplorer
 End Sub
 
 
