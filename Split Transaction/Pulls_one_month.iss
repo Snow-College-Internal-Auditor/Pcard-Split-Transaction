@@ -1,7 +1,9 @@
 Dim filename As String 
 Dim dbName As String 
+Dim subFilename As String 
 
 Sub Main
+	Call prefixName()
 	Call ExcelImport()	
 	Call DirectExtraction()	
 	Call Summarization()	
@@ -10,6 +12,12 @@ Sub Main
 	Client.RefreshFileExplorer
 End Sub
 
+
+Function prefixName
+
+	subFileName = InputBox("Type The Name of The Month: ", "Name Input", "Month")
+
+End Function 
 
 ' File - Import Assistant: Excel
 Function ExcelImport
@@ -34,7 +42,7 @@ Function DirectExtraction
 	task.AddFieldToInc "MERCHANT_NAME"
 	task.AddFieldToInc "TRANSACTION_DATE"
 	task.AddFieldToInc "TRANSACTION_AMOUNT"
-	filename =  InputBox("Type your name: ", "Name Input", "Split")
+	filename =  InputBox("Type your name: ", "Name Input", "Split") + "_" + subFilename
 	task.AddExtraction filename + ".IMD", "", ""
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
@@ -49,7 +57,7 @@ Function Summarization
 	task.AddFieldToSummarize "NAME"
 	task.AddFieldToSummarize "MERCHANT_NAME"
 	task.AddFieldToTotal "TRANSACTION_AMOUNT"
-	filename =  InputBox("Type your name: ", "Name Input", "Summarization1")
+	filename =  InputBox("Type your name: ", "Name Input", "Summarization1") + "_" + subFilename
 	task.OutputDBName = filename + ".IMD"
 	task.CreatePercentField = FALSE
 	task.StatisticsToInclude = SM_SUM
@@ -64,7 +72,7 @@ Function DirectExtraction1
 	Set db = Client.OpenDatabase(filename + ".IMD")
 	Set task = db.Extraction
 	task.IncludeAllFields
-	filename =  InputBox("Type your name: ", "Name Input","Over 4998_1")
+	filename =  InputBox("Type your name: ", "Name Input","Over 4998_1") + "_" + subFilename
 	task.AddExtraction filename + ".IMD", "", "NO_OF_RECS > 1  .AND.  TRANSACTION_AMOUNT_SUM > 4998"
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
