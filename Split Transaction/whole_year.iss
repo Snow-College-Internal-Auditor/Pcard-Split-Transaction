@@ -11,16 +11,16 @@ Sub Main
 	Call DirectExtraction1()	
 	Call AppendDatabase()	
 	Call Summarization()	
-	Call DirectExtraction2()	
+	Call DirectExtraction2()
+	Client.CloseAll
 	Call ExportDatabaseXLSX()
 	Client.RefreshFileExplorer
 End Sub
 
 
 Function Filename()
-
+	'This name will be used for the subDBNames
 	subFilename = InputBox("Type The Name of The Month: ", "Name Input", "Month")
-
 End Function
 
 ' File - Import Assistant: Excel
@@ -40,7 +40,7 @@ Function ExcelImport
 	Client.RefreshFileExplorer
 End Function
 
-' Data: Direct Extraction
+' Data: Direct Extraction. Flitters what is not needed in the first database. Must change date manually. The date is where the main database will start
 Function DirectExtraction
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Extraction
@@ -57,7 +57,7 @@ Function DirectExtraction
 	Client.OpenDatabase (customdbName)
 End Function
 
-' File - Import Assistant: Excel
+' File - Import Assistant: Excel Brings in the second database tat will join with the first database
 Function ExcelImport1
 	Set task = Client.GetImportTask("ImportExcel")
 	Set obj = client.commondialogs
@@ -74,7 +74,7 @@ Function ExcelImport1
 End Function
 
 
-' Data: Direct Extraction
+' Data: Direct Extraction. Filter what is not needed in the database. Must change date manually. The date is where the second database will start
 Function DirectExtraction1
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Extraction
@@ -91,7 +91,7 @@ Function DirectExtraction1
 	Client.OpenDatabase (customdbName2)
 End Function
 
-' File: Append Databases
+' File: Append Databases. Appends the split2 and splt db together to be fillttered
 Function AppendDatabase
 	Set db = Client.OpenDatabase(customdbName)
 	Set task = db.AppendDatabase
@@ -103,7 +103,7 @@ Function AppendDatabase
 	Client.OpenDatabase (dbName)
 End Function
 
-' Analysis: Summarization
+' Analysis: Summarization. Takes all of the transactions with the same vendor and puts them together. 
 Function Summarization
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Summarization
@@ -120,7 +120,7 @@ Function Summarization
 	Client.OpenDatabase (dbName)
 End Function
 
-' Data: Direct Extraction
+' Data: Direct Extraction. Removes everything that is under 5000 and addes a field to indicate if its been worked on or not
 Function DirectExtraction2
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Extraction
@@ -135,9 +135,9 @@ Function DirectExtraction2
 	Client.OpenDatabase (dbName)
 End Function
 
-' File - Export Database: XLSX
+' File - Export Database: XLSX. Reorganizes the db and then exports it.
 Function ExportDatabaseXLSX
-	Set db = Client.OpenDatabase("audit-July.IMD")
+	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Index
 	task.AddKey "NO_OF_RECS", "D"
 	task.Index FALSE
