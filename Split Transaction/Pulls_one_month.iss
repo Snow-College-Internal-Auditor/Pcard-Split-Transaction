@@ -7,14 +7,15 @@ Sub Main
 	Call ExcelImport()	
 	Call DirectExtraction()	
 	Call Summarization()	
-	Call DirectExtraction1()	
+	Call DirectExtraction1()
+	Client.CloseAll
 	Call ExportDatabaseXLSX()	
 	Client.RefreshFileExplorer
 End Sub
 
 
 Function prefixName
-
+	'Gets name for the sub database names
 	subFileName = InputBox("Type The Name of The Month: ", "Name Input", "Month")
 
 End Function 
@@ -34,7 +35,7 @@ Function ExcelImport
 	Set task = Nothing
 End Function
 
-' Data: Direct Extraction
+' Data: Direct Extraction. Removes what is not needed from the database
 Function DirectExtraction
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Extraction
@@ -50,7 +51,7 @@ Function DirectExtraction
 	Client.OpenDatabase ((filename + ".IMD"))
 End Function
 
-' Analysis: Summarization
+' Analysis: Summarization. Takes the database and organizies it by the merchant 
 Function Summarization
 	Set db = Client.OpenDatabase(filename + ".IMD")
 	Set task = db.Summarization
@@ -67,7 +68,7 @@ Function Summarization
 	Client.OpenDatabase (filename + ".IMD")
 End Function
 
-' Data: Direct Extraction
+' Data: Direct Extraction. Removes everything that is less then 5000
 Function DirectExtraction1
 	Set db = Client.OpenDatabase(filename + ".IMD")
 	Set task = db.Extraction
@@ -80,7 +81,7 @@ Function DirectExtraction1
 	Set db = Nothing
 End Function
 
-' File - Export Database: XLSX
+' File - Export Database: XLSX. Organizes the database and then exports it.
 Function ExportDatabaseXLSX
 	Set db = Client.OpenDatabase(filename + ".IMD")
 	Set task = db.ExportDatabase
