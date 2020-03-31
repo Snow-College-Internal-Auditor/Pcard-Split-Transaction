@@ -1,12 +1,27 @@
+Begin Dialog DateEntry 50,49,221,150,"Date Entry", .NewDialog
+  Text 36,12,63,14, "Enter Start Date:", .Text1
+  Text 17,12,63,14, "Enter Start Date:", .Text1
+  Text 17,50,78,15, "Enter End Date:", .Text1
+  TextBox 107,12,64,14, .TextBox1
+  TextBox 107,50,64,14, .TextBox2
+  OKButton 33,94,40,14, "OK", .OKButton1
+  CancelButton 129,94,40,14, "Cancel", .CancelButton1
+End Dialog
 Dim customdbName As String 
 Dim customdbName2 As String 
 Dim dbName As String
 Dim subFilename As String
+Dim dlg As DateEntry
+Dim button As Integer
+Dim startDate  As String
+Dim endDate As String
+Dim dateError As Boolean
 
 Sub Main
 	Call Filename()
 	Call ExcelImport()
-	Call DirectExtraction()	
+	Call DatePicker()
+	Call FirstDateFilter()	
 	Call ExcelImport1()	
 	Call DirectExtraction1()	
 	Call AppendDatabase()	
@@ -40,8 +55,47 @@ Function ExcelImport
 	Client.RefreshFileExplorer
 End Function
 
+Function DatePicker() 
+	'Place holder for text entry boxs
+	dlg.TextBox1 = "YYYY/MM/DD"
+	dlg.TextBox2 = "YYYY/MM/DD"
+	
+	Menu:
+		dateError = false
+		button = Dialog(dlg)
+		startDate = dlg.TextBox1
+		endDate = dlg.TextBox2
+	
+		'checks to see if the input is in the right formate
+		If Not IsDate(startDate) Then
+			MsgBox("That is not a correct date")
+			dateError = true
+		End If
+		If Not IsDate(endDate) Then
+			MsgBox("That is not a correct date")
+			dateError = true
+		End If
+		'if it is not in the right formate it will loop back to Menu:
+		If dateError = true Then 
+			GoTo Menu
+		Else
+			'remove the slashes from the dates as IDEA date does not use them
+			startDate = iRemove(startDate, "/") 'using the @remove date function and replace the slashes whith a blank
+			MsgBox(startDate)
+			endDate = iRemove(endDate, "/") 'using the @remove date function and replace the slashes whith a blank
+			MsgBox(endDate)
+		End If 
+		
+		'If button = 2 Then 
+		'	bExitScript = True 
+		'ElseIf button = 1 Then 
+		'	MsgBox(startDate)
+		'End If 
+	
+End Function  
+
 ' Data: Direct Extraction. Flitters what is not needed in the first database. Must change date manually. The date is where the main database will start
-Function DirectExtraction
+Function FirstDateFilter()
 	Set db = Client.OpenDatabase(dbName)
 	Set task = db.Extraction
 	task.AddFieldToInc "NAME"
@@ -49,8 +103,8 @@ Function DirectExtraction
 	task.AddFieldToInc "TRANSACTION_AMOUNT"
 	task.AddFieldToInc "MERCHANT_NAME"
 	customdbName =  "Split-" + subFilename + ".IMD"
-	task.AddExtraction customdbName, "", "TRANSACTION_DATE > ""20180731"""
-	task.CreateVirtualDatabase = False
+	task.AddExtraction customdbName, "", "TRANSACTION_DATE >"""  & startDate &  """"
+
 	task.PerformTask 1, db.Count
 	Set task = Nothing
 	Set db = Nothing
@@ -83,8 +137,7 @@ Function DirectExtraction1
 	task.AddFieldToInc "TRANSACTION_AMOUNT"
 	task.AddFieldToInc "MERCHANT_NAME"
 	customdbName2 = "Split2-" + subFilename  + ".IMD"
-	task.AddExtraction customdbName2, "", "TRANSACTION_DATE > ""20190731"""
-	task.CreateVirtualDatabase = False
+	task.AddExtraction customdbName2, "", "TRANSACTION_DATE >"""  & endDate &  """"
 	task.PerformTask 1, db.Count
 	Set task = Nothing
 	Set db = Nothing
