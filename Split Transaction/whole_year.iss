@@ -42,7 +42,6 @@ End Function
 Function CallScriptForPcardStatment
 	Client.RunIDEAScriptEx "Z:\2020 Activities\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
 	PrimaryDatabaseName = "Append Databases.IMD"
-	MsgBox(PrimaryDatabaseName)
 End Function
 
 
