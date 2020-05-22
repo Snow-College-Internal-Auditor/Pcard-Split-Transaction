@@ -41,7 +41,7 @@ End Function
 'This calls a script that will loop through pcard statements and append them together
 Function CallScriptForPcardStatment
 	Client.RunIDEAScriptEx "Z:\2020 Activities\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
-	PrimaryDatabaseName = "Append Databases 2019JulyTransactionStatement.xlsx Clean.IMD"
+	PrimaryDatabaseName = "Append Databases.IMD"
 	MsgBox(PrimaryDatabaseName)
 End Function
 
@@ -164,6 +164,8 @@ Function ExportDatabaseXLSX
 	Set db = Nothing
 	Set task = Nothing
 End Function
+
+
 
 
 
