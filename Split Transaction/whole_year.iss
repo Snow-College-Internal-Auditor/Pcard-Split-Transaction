@@ -34,7 +34,7 @@ End Sub
 '
 Function Filename()
 	'This name will be used for the subDBNames
-	subFilename = InputBox("Type The Name of The Month: ", "Name Input", "Month")
+	subFilename = InputBox("Type The Name of Audit: ", "Name Input", "Split Transaction")
 End Function
 
 
@@ -72,17 +72,8 @@ Function DatePicker()
 		Else
 			'remove the slashes from the dates as IDEA date does not use them
 			startDate = iRemove(startDate, "/") 'using the @remove date function and replace the slashes whith a blank
-			MsgBox(startDate)
 			endDate = iRemove(endDate, "/") 'using the @remove date function and replace the slashes whith a blank
-			MsgBox(endDate)
 		End If 
-		
-		'If button = 2 Then 
-		'	bExitScript = True 
-		'ElseIf button = 1 Then 
-		'	MsgBox(startDate)
-		'End If 
-	
 End Function  
 
 ' Data: Direct Extraction. Flitters what is not needed in the first database. Must change date manually. The date is where the main database will start
