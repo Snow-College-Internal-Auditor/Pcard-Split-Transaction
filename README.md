@@ -1,3 +1,3 @@
 # Pcard-Split-Transaction
 Script that will pull a pcard file and summarize it into a data base with only split transactions with a total ammount higher the $4999. 
-The only thing that has to be changed in the code is the date that the database filters by and the path file where the last data base created is saved.  
+You no longer have to change the dates manullay. There is a dialog box now that will give you the chance to put in whatever dates are needed. You will need to type them into the format that is displayed in the dialog box. Also at the beginning of the script you are asked too give a subfile name. This allows you to run the script multiple times in the same project without naming conflitcs. You can leave this blank if you do not want it.  
