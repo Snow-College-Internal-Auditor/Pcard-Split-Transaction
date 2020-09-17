@@ -34,7 +34,11 @@ End Sub
 '
 Function Filename()
 	'This name will be used for the subDBNames
-	subFilename = InputBox("Type The Name of Audit: ", "Name Input", "Split Transaction")
+	Dim MyDate As String 
+	MyDate = CStr(Date)
+	Dim auditName As String
+	auditName = "Split Transaction Audit " + MyDate
+	subFilename = InputBox("Type The Name of Audit: ", "Name Input", auditName)
 End Function
 
 
