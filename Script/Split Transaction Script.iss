@@ -1,4 +1,4 @@
-Begin Dialog DateEntry 50,49,221,150,"Date Entry", .NewDialog
+Begin Dialog DateEntry 50,49,221,150,"Date Entry", .DisplayDateDialog
   Text 36,12,63,14, "Enter Start Date:", .Text1
   Text 17,12,63,14, "Enter Start Date:", .Text1
   Text 17,50,78,15, "Enter End Date:", .Text1
@@ -7,38 +7,92 @@ Begin Dialog DateEntry 50,49,221,150,"Date Entry", .NewDialog
   OKButton 33,94,40,14, "OK", .OKButton1
   CancelButton 129,94,40,14, "Cancel", .CancelButton1
 End Dialog
+
+Begin Dialog ProjectName 50,48,188,121,"Project Name", .DisplayProjName
+  Text 12,8,85,10, "Type The Name of Audit", .Text1
+  TextBox 12,29,104,14, .NameBox
+  OKButton 12,58,40,14, "OK", .OKButton1
+  CancelButton 79,58,40,14, "Cancel", .CancelButton1
+End Dialog
+
+
+
+
+Option Explicit
+
 Dim customdbName As String 
 Dim customdbName2 As String 
 Dim dbName As String
 Dim subFilename As String
-Dim dlg As DateEntry
-Dim button As Integer
 Dim startDate  As String
 Dim endDate As String
 Dim dateError As Boolean
 Dim PrimaryDatabaseName As String 
+Dim bExitScript As Boolean 
+
+Dim projNameDialog As ProjectName
+
 
 Sub Main
-	Call Filename()
-	Call CallScriptForPcardStatment()
-	Call DatePicker()
-	Call FirstDateFilter()	
-	Call DirectExtraction1()	
-	Call Summarization()	
-	Call DirectExtraction2()
-	Client.CloseAll
-	Call ExportDatabaseXLSX()
-	Client.RefreshFileExplorer
+	Call mainMenu()
+	If Not bExitScript Then 
+		'Call Filename()
+		'Call CallScriptForPcardStatment()
+		'Call DatePicker()
+		'Call FirstDateFilter()	
+		'Call DirectExtraction1()	
+		'Call Summarization()	
+		'Call DirectExtraction2()
+		'Client.CloseAll
+		'Call ExportDatabaseXLSX()
+		'Client.RefreshFileExplorer
+		MsgBox("The script ending")
+	Else 
+		MsgBox("The script has been canculed")
+	End If
 End Sub
 
+Function mainMenu()
+	Dim button As Integer 
+	
+	button = Dialog(projNameDialog)
+End Function
+
+
+Function DisplayProjName(ControlID$, Action%, SuppValue%)
+	Dim bExitFunction As Boolean 
+	Dim currentDate As String
+	currentDate = CStr(Date())
+	Select Case Action%
+		Case 1
+		
+		Case 2
+			Select Case ControlID$
+				Case "OKButton1"
+					If projNameDialog.NameBox = "" Then
+						projNameDialog.NameBox = "Split Transaction " + currentDate
+						MsgBox("Default name is " + projNameDialog.NameBox)
+					End If 
+					bExitFunction = True
+				Case "CancelButton1"
+					bExitScript = True
+					bExitFunction = True
+			End Select
+	End Select 
+	
+	If bExitFunction Then 
+		DisplayProjName = 0
+	Else
+		DisplayProjName = 1
+	End If
+
+End Function
 '
 Function Filename()
 	'This name will be used for the subDBNames
-	Dim MyDate As String 
-	MyDate = CStr(Date)
-	Dim auditName As String
-	auditName = "Split Transaction Audit " + MyDate
-	subFilename = InputBox("Type The Name of Audit: ", "Name Input", auditName)
+	subFilename = InputBox("Type The Name of Audit: ", "Name Input", "Split Transaction")
+	MsgBox(subFilename)
+	
 End Function
 
 
@@ -50,16 +104,18 @@ End Function
 
 
 '
-Function DatePicker() 
+Function DatePicker()
+	Dim dateDialog As DateEntry
+	Dim button As Integer
 	'Place holder for text entry boxs
-	dlg.TextBox1 = "YYYY/MM/DD"
-	dlg.TextBox2 = "YYYY/MM/DD"
+	dateEntry.TextBox1 = "YYYY/MM/DD"
+	dateEntry.TextBox2 = "YYYY/MM/DD"
 	
 	Menu:
 		dateError = false
-		button = Dialog(dlg)
-		startDate = dlg.TextBox1
-		endDate = dlg.TextBox2
+		button = Dialog(dateEntry)
+		startDate = dateEntry.TextBox1
+		endDate = dateEntry.TextBox2
 	
 		'checks to see if the input is in the right formate
 		If Not IsDate(startDate) Then
@@ -82,6 +138,8 @@ End Function
 
 ' Data: Direct Extraction. Flitters what is not needed in the first database. Must change date manually. The date is where the main database will start
 Function FirstDateFilter()
+	Dim db As Database
+	Dim task as task
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Extraction
 	task.AddFieldToInc "NAME"
@@ -100,6 +158,8 @@ End Function
 
 ' Data: Direct Extraction. Filter what is not needed in the database. Must change date manually. The date is where the second database will start
 Function DirectExtraction1
+	Dim db As Database
+	Dim task As task
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Extraction
 	customdbName2 = "Split2-" + subFilename  + ".IMD"
@@ -113,6 +173,8 @@ End Function
 
 ' Analysis: Summarization. Takes all of the transactions with the same vendor and puts them together. 
 Function Summarization
+	Dim db As Database
+	Dim task As task
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Summarization
 	task.AddFieldToSummarize "NAME"
@@ -131,6 +193,8 @@ End Function
 
 ' Data: Direct Extraction. Removes everything that is under 5000 and addes a field to indicate if its been worked on or not
 Function DirectExtraction2
+	Dim db As Database
+	Dim task As task
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Extraction
 	task.IncludeAllFields
@@ -147,6 +211,8 @@ End Function
 
 ' File - Export Database: XLSX. Reorganizes the db and then exports it.
 Function ExportDatabaseXLSX
+	Dim db As Database
+	Dim task as task
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Index
 	task.AddKey "NO_OF_RECS", "D"
@@ -158,6 +224,8 @@ Function ExportDatabaseXLSX
 	Set db = Nothing
 	Set task = Nothing
 End Function
+
+
 
 
 
