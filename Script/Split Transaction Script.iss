@@ -1,11 +1,10 @@
-Begin Dialog DateEntry 50,49,221,150,"Date Entry", .DisplayDateDialog
-  Text 36,12,63,14, "Enter Start Date:", .Text1
-  Text 17,12,63,14, "Enter Start Date:", .Text1
-  Text 17,50,78,15, "Enter End Date:", .Text1
-  TextBox 107,12,64,14, .TextBox1
-  TextBox 107,50,64,14, .TextBox2
-  OKButton 33,94,40,14, "OK", .OKButton1
-  CancelButton 129,94,40,14, "Cancel", .CancelButton1
+Begin Dialog DateEntry 50,47,220,150,"Date Entry", .DisplayDateDialog
+  Text 16,12,63,14, "Enter Start Date:", .Text1
+  Text 16,49,62,16, "Enter End Date:", .Text1
+  TextBox 107,11,64,14, .StartDate
+  TextBox 107,50,64,14, .EndDate
+  OKButton 33,92,40,14, "OK", .OKButton1
+  CancelButton 130,92,40,14, "Cancel", .CancelButton1
 End Dialog
 
 Begin Dialog ProjectName 50,48,188,121,"Project Name", .DisplayProjName
@@ -14,9 +13,6 @@ Begin Dialog ProjectName 50,48,188,121,"Project Name", .DisplayProjName
   OKButton 12,58,40,14, "OK", .OKButton1
   CancelButton 79,58,40,14, "Cancel", .CancelButton1
 End Dialog
-
-
-
 
 Option Explicit
 
@@ -31,32 +27,42 @@ Dim PrimaryDatabaseName As String
 Dim bExitScript As Boolean 
 
 Dim projNameDialog As ProjectName
+Dim dateEntryDialog As DateEntry
 
 
 Sub Main
-	Call mainMenu()
+	Call ProjNameMenu()
 	If Not bExitScript Then 
-		'Call Filename()
-		'Call CallScriptForPcardStatment()
-		'Call DatePicker()
-		'Call FirstDateFilter()	
-		'Call DirectExtraction1()	
-		'Call Summarization()	
-		'Call DirectExtraction2()
-		'Client.CloseAll
-		'Call ExportDatabaseXLSX()
-		'Client.RefreshFileExplorer
-		MsgBox("The script ending")
+		Call ScriptForPcardStatment()
+		Call DateEntryMenu()
+		If Not bExitScript Then
+			'Call DatePicker()
+			'Call FirstDateFilter()	
+			'Call DirectExtraction1()	
+			'Call Summarization()	
+			'Call DirectExtraction2()
+			'Client.CloseAll
+			'Call ExportDatabaseXLSX()
+			'Client.RefreshFileExplorer
+		Else
+			MsgBox("The script has been canculed")	
+		End If 
 	Else 
 		MsgBox("The script has been canculed")
-	End If
+	End If 
 End Sub
 
-Function mainMenu()
+Function ProjNameMenu()
 	Dim button As Integer 
 	
 	button = Dialog(projNameDialog)
 End Function
+
+Function DateEntryMenu()
+	Dim button2 As Integer 
+	
+	button2 = Dialog(dateEntryDialog)
+End Function 
 
 
 Function DisplayProjName(ControlID$, Action%, SuppValue%)
@@ -69,12 +75,15 @@ Function DisplayProjName(ControlID$, Action%, SuppValue%)
 		Case 2
 			Select Case ControlID$
 				Case "OKButton1"
+					MsgBox("Made it to ok button on name.")
 					If projNameDialog.NameBox = "" Then
 						projNameDialog.NameBox = "Split Transaction " + currentDate
 						MsgBox("Default name is " + projNameDialog.NameBox)
 					End If 
+					bExitScript = False
 					bExitFunction = True
 				Case "CancelButton1"
+					MsgBox("Made it to CancelButton1 on name.")
 					bExitScript = True
 					bExitFunction = True
 			End Select
@@ -87,35 +96,56 @@ Function DisplayProjName(ControlID$, Action%, SuppValue%)
 	End If
 
 End Function
-'
-Function Filename()
-	'This name will be used for the subDBNames
-	subFilename = InputBox("Type The Name of Audit: ", "Name Input", "Split Transaction")
-	MsgBox(subFilename)
+
+Function DisplayDateDialog(ControlID$, Action%, SuppValue%)
+	Dim bExitFunction As Boolean 
+	Dim currentDate As String
+	currentDate = CStr(Date())
+	Select Case Action%
+		Case 1
+		
+		Case 2
+			Select Case ControlID$
+				Case "OKButton1"
+					MsgBox("Made it to ok button on date.")
+					bExitScript = False
+					bExitFunction = True
+				Case "CancelButton1"
+					MsgBox("Made it to CancelButton1 on date.")
+					bExitScript = True
+					bExitFunction = True
+			End Select
+	End Select 
 	
+	If bExitFunction Then 
+		DisplayDateDialog = 0
+	Else
+		DisplayDateDialog = 1
+	End If
+
 End Function
 
 
 'This calls a script that will loop through pcard statements and append them together
-Function CallScriptForPcardStatment
+Function ScriptForPcardStatment
 	Client.RunIDEAScriptEx "Z:\2020 Activities\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
 	PrimaryDatabaseName = "Append Databases.IMD"
 End Function
 
 
-'
+'TODO move this to the function
+'Get text fill to work 
 Function DatePicker()
-	Dim dateDialog As DateEntry
 	Dim button As Integer
 	'Place holder for text entry boxs
-	dateEntry.TextBox1 = "YYYY/MM/DD"
-	dateEntry.TextBox2 = "YYYY/MM/DD"
+	dateEntryDialog.StartDate = "YYYY/MM/DD"
+	dateEntryDialog.EndDate = "YYYY/MM/DD"
 	
 	Menu:
 		dateError = false
 		button = Dialog(dateEntry)
-		startDate = dateEntry.TextBox1
-		endDate = dateEntry.TextBox2
+		startDate = dateEntry.StartDate
+		endDate = dateEntry.EndDate
 	
 		'checks to see if the input is in the right formate
 		If Not IsDate(startDate) Then
