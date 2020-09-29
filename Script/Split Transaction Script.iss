@@ -20,48 +20,48 @@ Dim customdbName As String
 Dim customdbName2 As String 
 Dim dbName As String
 Dim subFilename As String
-Dim startDate  As String
-Dim endDate As String
+Dim startDate  As String	
+Dim endDate As string
 Dim dateError As Boolean
 Dim PrimaryDatabaseName As String 
 Dim bExitScript As Boolean 
 
 Dim projNameDialog As ProjectName
 Dim dateEntryDialog As DateEntry
+Dim button As Integer
+
+Dim errorMessage As String
 
 
 Sub Main
 	Call ProjNameMenu()
-	If Not bExitScript Then 
-		Call ScriptForPcardStatment()
-		Call DateEntryMenu()
-		If Not bExitScript Then
-			'Call DatePicker()
-			'Call FirstDateFilter()	
-			'Call DirectExtraction1()	
-			'Call Summarization()	
-			'Call DirectExtraction2()
-			'Client.CloseAll
-			'Call ExportDatabaseXLSX()
-			'Client.RefreshFileExplorer
-		Else
-			MsgBox("The script has been canculed")	
-		End If 
-	Else 
-		MsgBox("The script has been canculed")
-	End If 
+	Call ScriptForPcardStatment()
+	Call DateChecker()
+	Call FirstDateFilter()	
+	Call DirectExtraction1()	
+	Call Summarization()	
+	Call DirectExtraction2()
+	Client.CloseAll
+	Call ExportDatabaseXLSX()
+	Client.RefreshFileExplorer
 End Sub
 
 Function ProjNameMenu()
-	Dim button As Integer 
-	
 	button = Dialog(projNameDialog)
+	If button = 0 Then
+		MsgBox("IDEA macro is stopping")
+		Stop
+	End If		
 End Function
 
 Function DateEntryMenu()
-	Dim button2 As Integer 
-	
-	button2 = Dialog(dateEntryDialog)
+		button = Dialog(dateEntryDialog)
+		If button = 0 Then
+			MsgBox("IDEA macro is stopping")
+			Stop
+		Else
+			Call DateChecker()
+		End If
 End Function 
 
 
@@ -75,16 +75,15 @@ Function DisplayProjName(ControlID$, Action%, SuppValue%)
 		Case 2
 			Select Case ControlID$
 				Case "OKButton1"
-					MsgBox("Made it to ok button on name.")
 					If projNameDialog.NameBox = "" Then
 						projNameDialog.NameBox = "Split Transaction " + currentDate
+						subFilename = projNameDialog.NameBox
 						MsgBox("Default name is " + projNameDialog.NameBox)
+					Else 
+						subFilename = projNameDialog.NameBox
 					End If 
-					bExitScript = False
 					bExitFunction = True
 				Case "CancelButton1"
-					MsgBox("Made it to CancelButton1 on name.")
-					bExitScript = True
 					bExitFunction = True
 			End Select
 	End Select 
@@ -100,19 +99,15 @@ End Function
 Function DisplayDateDialog(ControlID$, Action%, SuppValue%)
 	Dim bExitFunction As Boolean 
 	Dim currentDate As String
-	currentDate = CStr(Date())
+	'Place holder for text entry boxs
 	Select Case Action%
 		Case 1
 		
 		Case 2
 			Select Case ControlID$
 				Case "OKButton1"
-					MsgBox("Made it to ok button on date.")
-					bExitScript = False
 					bExitFunction = True
 				Case "CancelButton1"
-					MsgBox("Made it to CancelButton1 on date.")
-					bExitScript = True
 					bExitFunction = True
 			End Select
 	End Select 
@@ -125,35 +120,28 @@ Function DisplayDateDialog(ControlID$, Action%, SuppValue%)
 
 End Function
 
-
-'This calls a script that will loop through pcard statements and append them together
-Function ScriptForPcardStatment
-	Client.RunIDEAScriptEx "Z:\2020 Activities\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
-	PrimaryDatabaseName = "Append Databases.IMD"
-End Function
-
-
-'TODO move this to the function
-'Get text fill to work 
-Function DatePicker()
-	Dim button As Integer
+Function DateChecker() 
 	'Place holder for text entry boxs
 	dateEntryDialog.StartDate = "YYYY/MM/DD"
 	dateEntryDialog.EndDate = "YYYY/MM/DD"
 	
 	Menu:
 		dateError = false
-		button = Dialog(dateEntry)
-		startDate = dateEntry.StartDate
-		endDate = dateEntry.EndDate
+		button = Dialog(dateEntryDialog)
+		If button = 0 Then
+			MsgBox("This macro has been stopped")
+			Stop
+		End If
+		startDate = dateEntryDialog.StartDate
+		endDate = dateEntryDialog.EndDate
 	
 		'checks to see if the input is in the right formate
 		If Not IsDate(startDate) Then
-			MsgBox("That is not a correct date")
+			MsgBox("That is not a correct date in the start date box.")
 			dateError = true
 		End If
 		If Not IsDate(endDate) Then
-			MsgBox("That is not a correct date")
+			MsgBox("That is not a correct date in the end date box.")
 			dateError = true
 		End If
 		'if it is not in the right formate it will loop back to Menu:
@@ -165,6 +153,23 @@ Function DatePicker()
 			endDate = iRemove(endDate, "/") 'using the @remove date function and replace the slashes whith a blank
 		End If 
 End Function  
+
+
+
+
+'This calls a script that will loop through pcard statements and append them together
+Function ScriptForPcardStatment
+	On Error GoTo ErrorHandler
+	'TODO make error check if the file cant be reached. 
+	Client.RunIDEAScriptEx "Z:\2020 Activities\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
+	Exit Sub
+	ErrorHandler:
+		MsgBox "Idea script Loop Pull and Join could not be run. IDEA script stopping."
+		Stop
+	'TODO fix append error if one already is there
+	PrimaryDatabaseName = "Append Databases.IMD"
+End Function
+
 
 ' Data: Direct Extraction. Flitters what is not needed in the first database. Must change date manually. The date is where the main database will start
 Function FirstDateFilter()
