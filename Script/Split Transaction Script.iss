@@ -14,6 +14,7 @@ Begin Dialog ProjectName 50,48,188,121,"Project Name", .DisplayProjName
   CancelButton 79,58,40,14, "Cancel", .CancelButton1
 End Dialog
 
+
 Option Explicit
 
 Dim customdbName As String 
@@ -37,12 +38,12 @@ Sub Main
 	Call ProjNameMenu()
 	Call ScriptForPcardStatment()
 	Call DateChecker()
-	Call FirstDateFilter()	
-	Call DirectExtraction1()	
-	Call Summarization()	
-	Call DirectExtraction2()
 	Client.CloseAll
-	Call ExportDatabaseXLSX()
+	Call StartDateFilter()	
+	Call EndDateFilter()	
+	Call Summarization()	
+	Call RemoveTransactionsUnder5000()
+	Client.CloseAll
 	Client.RefreshFileExplorer
 End Sub
 
@@ -68,7 +69,7 @@ End Function
 Function DisplayProjName(ControlID$, Action%, SuppValue%)
 	Dim bExitFunction As Boolean 
 	Dim currentDate As String
-	currentDate = CStr(Date())
+	'currentDate = CStr(Date())
 	Select Case Action%
 		Case 1
 		
@@ -76,9 +77,9 @@ Function DisplayProjName(ControlID$, Action%, SuppValue%)
 			Select Case ControlID$
 				Case "OKButton1"
 					If projNameDialog.NameBox = "" Then
-						projNameDialog.NameBox = "Split Transaction " + currentDate
+						projNameDialog.NameBox = "Split Transaction" 
 						subFilename = projNameDialog.NameBox
-						MsgBox("Default name is " + projNameDialog.NameBox)
+						MsgBox("Default name is " + subFilename)
 					Else 
 						subFilename = projNameDialog.NameBox
 					End If 
@@ -159,49 +160,53 @@ End Function
 
 'This calls a script that will loop through pcard statements and append them together
 Function ScriptForPcardStatment
+
 	On Error GoTo ErrorHandler
 	'TODO make error check if the file cant be reached. 
-	Client.RunIDEAScriptEx "Z:\2020 Activities\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
+	Client.RunIDEAScriptEx "Z:\2020 Activities\A.04.2020 - Continuous Audits\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
+		'TODO fix append error if one already is there
+	PrimaryDatabaseName = "Append Databases.IMD"
 	Exit Sub
 	ErrorHandler:
 		MsgBox "Idea script Loop Pull and Join could not be run. IDEA script stopping."
 		Stop
-	'TODO fix append error if one already is there
-	PrimaryDatabaseName = "Append Databases.IMD"
 End Function
 
 
 ' Data: Direct Extraction. Flitters what is not needed in the first database. Must change date manually. The date is where the main database will start
-Function FirstDateFilter()
+Function StartDateFilter
 	Dim db As Database
-	Dim task as task
+	Dim task As task
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Extraction
 	task.AddFieldToInc "NAME"
 	task.AddFieldToInc "TRANSACTION_DATE"
 	task.AddFieldToInc "TRANSACTION_AMOUNT"
 	task.AddFieldToInc "MERCHANT_NAME"
-	customdbName =  "Split-" + subFilename + ".IMD"
+	customdbName =  "Split-" + subFilename  + ".IMD"
 	task.AddExtraction customdbName, "", "TRANSACTION_DATE >"""  & startDate &  """"
-
+	
 	task.PerformTask 1, db.Count
 	Set task = Nothing
 	Set db = Nothing
+	PrimaryDatabaseName = customdbName
 	Client.OpenDatabase (customdbName)
 End Function
 
 
 ' Data: Direct Extraction. Filter what is not needed in the database. Must change date manually. The date is where the second database will start
-Function DirectExtraction1
+Function EndDateFilter
 	Dim db As Database
 	Dim task As task
+
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Extraction
-	customdbName2 = "Split2-" + subFilename  + ".IMD"
-	task.AddExtraction customdbName2, "", "TRANSACTION_DATE >"""  & endDate &  """"
+	customdbName2 = "Split2-" + projNameDialog.NameBox  + ".IMD"
+	task.AddExtraction customdbName2, "", "TRANSACTION_DATE <"""  & endDate &  """"
 	task.PerformTask 1, db.Count
 	Set task = Nothing
 	Set db = Nothing
+	PrimaryDatabaseName = customdbName2
 	Client.OpenDatabase (customdbName2)
 End Function
 
@@ -215,7 +220,7 @@ Function Summarization
 	task.AddFieldToSummarize "NAME"
 	task.AddFieldToSummarize "MERCHANT_NAME"
 	task.AddFieldToTotal "TRANSACTION_AMOUNT"
-	PrimaryDatabaseName = "Summarization-" + subFilename  + ".IMD"
+	PrimaryDatabaseName = "Summarization-" + projNameDialog.NameBox  + ".IMD"
 	task.OutputDBName = PrimaryDatabaseName
 	task.CreatePercentField = FALSE
 	task.StatisticsToInclude = SM_SUM
@@ -227,14 +232,14 @@ End Function
 
 
 ' Data: Direct Extraction. Removes everything that is under 5000 and addes a field to indicate if its been worked on or not
-Function DirectExtraction2
+Function RemoveTransactionsUnder5000
 	Dim db As Database
 	Dim task As task
 	Set db = Client.OpenDatabase(PrimaryDatabaseName)
 	Set task = db.Extraction
 	task.IncludeAllFields
 	task.AddField "EDIT", "", WI_EDIT_CHAR, 1, 0, """N"""
-	PrimaryDatabaseName = "audit-" + subFilename  + ".IMD"
+	PrimaryDatabaseName = "audit-" + projNameDialog.NameBox  + ".IMD"
 	task.AddExtraction PrimaryDatabaseName, "", " NO_OF_RECS > 1  .AND.  TRANSACTION_AMOUNT_SUM > 4999"
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
@@ -243,22 +248,6 @@ Function DirectExtraction2
 	Client.OpenDatabase (PrimaryDatabaseName)
 End Function
 
-
-' File - Export Database: XLSX. Reorganizes the db and then exports it.
-Function ExportDatabaseXLSX
-	Dim db As Database
-	Dim task as task
-	Set db = Client.OpenDatabase(PrimaryDatabaseName)
-	Set task = db.Index
-	task.AddKey "NO_OF_RECS", "D"
-	task.Index FALSE
-	task = db.ExportDatabase
-	task.IncludeAllFields
-	' Display the setup dialog box before performing the task.
-	task.DisplaySetupDialog 0
-	Set db = Nothing
-	Set task = Nothing
-End Function
 
 
 
