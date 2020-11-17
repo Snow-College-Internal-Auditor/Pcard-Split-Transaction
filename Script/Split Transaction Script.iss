@@ -18,6 +18,9 @@ End Dialog
 
 
 
+
+
+
 'Version 1 new script to test for split transactions in pcard purchases
 'Version 2 update to improve dialogue boxes
 Option Explicit
@@ -170,17 +173,17 @@ Function ScriptForPcardStatment
 	Dim filename As String
 	Dim obj As Object
 	' Access the CommomDialogs object.
+	MsgBox("When File explorere opens locate the Loop and Pull script. It will be located in the Audit internal drive ")
 	Set obj = Client.CommonDialogs
 	filename = obj.FileOpen("","","All Files (*.*)|*.*||;")
 	Client.RunIDEAScriptEx filename, "", "", "", ""
-	'Client.RunIDEAScriptEx "Z:\2020 Activities\A.04.2020 - Continuous Audits\Data Analytics\Active Scripts\Master Scripts\Loop Pull and Join.iss", "", "", "", ""
 		'TODO fix append error if one already is there
-	
 	PrimaryDatabaseName = "Append Databases.IMD"
+	Client.OpenDatabase(PrimaryDatabaseName)
 	Set obj = Nothing
 	Exit Sub
 	ErrorHandler:
-		MsgBox "Idea script Loop Pull and Join could not be run. IDEA script stopping."
+		MsgBox "Idea script Loop Pull and Join could not be run properly. IDEA script stopping."
 		Stop
 End Function
 
