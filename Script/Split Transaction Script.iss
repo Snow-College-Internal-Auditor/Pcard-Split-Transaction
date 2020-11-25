@@ -22,6 +22,20 @@ End Dialog
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 'Version 1 new script to test for split transactions in pcard purchases
 'Version 2 update to improve dialogue boxes
 'Version 3 made check if first row of column is empty and made it so you have to use the file explorer to run the loop and pull script
