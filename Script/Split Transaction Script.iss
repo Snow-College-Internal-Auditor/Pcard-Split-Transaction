@@ -19,26 +19,10 @@ End Dialog
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 'Version 1 new script to test for split transactions in pcard purchases
 'Version 2 update to improve dialogue boxes
 'Version 3 made check if first row of column is empty and made it so you have to use the file explorer to run the loop and pull script
+'Version 4 added code that removes uneeded fields since i removed that from the loop and pull script
 Option Explicit
 
 Dim customdbName As String 
@@ -60,6 +44,7 @@ Dim errorMessage As String
 Sub Main
 	Call ProjNameMenu()
 	Call ScriptForPcardStatment()
+	Call CleanData()
 	Call DateChecker()
 	Client.CloseAll
 	Call StartDateFilter()	
@@ -179,8 +164,6 @@ Function DateChecker()
 End Function  
 
 
-
-
 'This calls a script that will loop through pcard statements and append them together
 Function ScriptForPcardStatment
 
@@ -195,7 +178,6 @@ Function ScriptForPcardStatment
 	Client.RunIDEAScriptEx filename, "", "", "", ""
 		'TODO fix append error if one already is there
 	PrimaryDatabaseName = "Append Databases.IMD"
-	Client.OpenDatabase(PrimaryDatabaseName)
 	Set obj = Nothing
 	Exit Sub
 	ErrorHandler:
@@ -204,7 +186,82 @@ Function ScriptForPcardStatment
 End Function
 
 
-' Data: Direct Extraction. Flitters what is not needed in the first database. Must change date manually. The date is where the main database will start
+' Data: Removes an unneeded column from the database. The reason it moves the one 
+'is because not all pcard statements store the same type of data in the column
+'and it is currently never used in these audits.
+Function CleanData
+	Dim db As Database
+	Dim task As task 
+	Set db = Client.OpenDatabase(PrimaryDatabaseName)
+	Set task = db.TableManagement
+	On Error GoTo ErrorHandler
+		task.RemoveField "OPTIONAL_2"
+		task.RemoveField "REPLACEMENT_ACCOUNT"
+		task.RemoveField "MANAGING_ACCOUNT_NUMBER"
+		task.RemoveField "MANAGING_ACCOUNT_NAME"
+		task.RemoveField "MANAGING_ACCOUNT_NAME_LINE_2"
+		task.RemoveField "SOCIAL_SECURITY_NUMBER"
+		task.RemoveField "OPTIONAL_1"
+		task.RemoveField "CURRENT_DEFAULT_ACCOUNTING_CODE"
+		task.RemoveField "LOST_STOLEN_ACCOUNT"
+		task.RemoveField "POSTING_DATE"
+		task.RemoveField "CYCLE_CLOSE_DATE"
+		task.RemoveField "SOURCE_CURRENCY_AMOUNT"
+		task.RemoveField "SOURCE_CURRENCY"
+		task.RemoveField "SALES_TAX"
+		task.RemoveField "POSTING_TYPE"
+		task.RemoveField "PURCHASE_ID"
+		task.RemoveField "TRANSACTION_STATUS"
+		task.RemoveField "DISPUTED_STATUS"
+		task.RemoveField "DISPUTE_STATUS_DATE"
+		task.RemoveField "REFERENCE_NUMBER"
+		task.RemoveField "TAXPAYER_ID_NUMBER_TIN"
+		task.RemoveField "MERCHANT_ORDER_NUMBER"
+		task.RemoveField "MEMO_TO_ACCOUNT_NAME"
+		task.RemoveField "MEMO_TO_ACCOUNT_NUMBER"
+		task.RemoveField "POSTED_TO_ACCOUNT_NAME"
+		task.RemoveField "POSTED_TO_ACCOUNT_NUMBER"
+		task.RemoveField "BILLING_TYPE"
+		task.RemoveField "CLIENT_NAME"
+		task.RemoveField "REPORT_DATE"
+		task.RemoveField "REPORT_NAME"
+		task.RemoveField "DATE_TYPE"
+		task.RemoveField "START_DATE"
+		task.RemoveField "END_DATE"
+		task.RemoveField "REVIEWED_STATUS"
+		task.RemoveField "DISPUTED_STATUS1"
+		task.RemoveField "TRANSACTION_AMOUNT1"
+		task.RemoveField "POSTING_TYPE1"
+		task.RemoveField "ALLOCATION_DETAIL"
+		task.RemoveField "TRANSACTION_COMMENTS"
+		task.RemoveField "TRANSACTION_CUSTOM_FIELDS"
+		task.RemoveField "FLEET_DETAIL"
+		task.RemoveField "PAYMENTS"
+		task.RemoveField "FEES"
+		task.RemoveField "INCLUDE_PROCESSING_HIERARCHY_NAMES"
+		task.RemoveField "SORT_1"
+		task.RemoveField "SORT_2"
+		task.RemoveField "SORT_3"
+		task.RemoveField "SORT_4"
+		task.RemoveField "BANK"
+		task.RemoveField "AGENT"
+		task.RemoveField "COMPANY"
+		task.RemoveField "DIVISION"
+		task.RemoveField "DEPARTMENT"
+		task.CreateVirtualDatabase = False
+		task.PerformTask
+		Client.CloseDatabase PrimaryDatabaseName
+		Set task = Nothing
+		Set db = Nothing
+		Exit Sub
+	ErrorHandler:
+		MsgBox("An error occured while cleaing the " + PrimaryDatabaseName + " database. The most likely cause is that the first row of the dataset was empty when you brought it in. If this is the issue simply delete that row in Excel.")
+		Client.RefreshFileExplorer
+		Stop
+End Function
+
+
+' Data: Direct Extraction. Flitters what is not needed in the first database. The date is where the main database will start
 Function StartDateFilter
 	Dim db As Database
 	Dim task As task
@@ -216,7 +273,6 @@ Function StartDateFilter
 	task.AddFieldToInc "MERCHANT_NAME"
 	customdbName =  "Split-" + subFilename  + ".IMD"
 	task.AddExtraction customdbName, "", "TRANSACTION_DATE >"""  & startDate &  """"
-	
 	task.PerformTask 1, db.Count
 	Set task = Nothing
 	Set db = Nothing
@@ -225,7 +281,7 @@ Function StartDateFilter
 End Function
 
 
-' Data: Direct Extraction. Filter what is not needed in the database. Must change date manually. The date is where the second database will start
+' Data: Direct Extraction. Filter what is not needed in the database. The date is where the second database will start
 Function EndDateFilter
 	Dim db As Database
 	Dim task As task
@@ -242,7 +298,7 @@ Function EndDateFilter
 End Function
 
 
-' Analysis: Summarization. Takes all of the transactions with the same vendor and puts them together. 
+' Analysis: Summarization. Takes all of the transactions with the same vendor and name and puts them together. It also removes duplicates in split 1 and split 2
 Function Summarization
 	Dim db As Database
 	Dim task As task
